@@ -62,15 +62,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let listener = TcpListener::bind(local).await?;
     loop {
-        let (tcpstream, _) = listener.accept().await?;
+        let (tcpstream, addr) = listener.accept().await?;
         let proxy = proxy.clone();
         let remote = remote.clone();
         tokio::spawn(async move {
             let socks5stream = Socks5Stream::connect(proxy.as_str(), remote.as_str())
                 .await
                 .map_err(drop)?;
+
+            println!("{addr} connected");
             link_stream(tcpstream, socks5stream).await.map_err(drop)?;
-            <Result<(), ()>>::Ok(())
+            println!("{addr} disconnected");
+
+            Ok::<_, ()>(())
         });
     }
 }
