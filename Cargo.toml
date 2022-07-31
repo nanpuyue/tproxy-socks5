@@ -1,11 +1,11 @@
 [package]
 name = "tproxy-socks5"
-version = "0.1.0"
-edition = "2018"
+version = "0.1.1"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.33.3"
+clap = "3.2.16"
 tokio-socks = "0.5.1"
-tokio = { version = "1.9.0", features = ["io-util", "macros", "rt", "net"] }
+tokio = { version = "1.20.1", features = ["io-util", "macros", "rt", "net"] }

@@ -22,17 +22,17 @@ async fn link_stream<A: AsyncRead + AsyncWrite, B: AsyncRead + AsyncWrite>(
         }
     };
 
-    Ok(r.map(drop)?)
+    r.map(drop)
 }
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("tproxy-socks5")
-        .version("0.1.0")
+        .version("0.1.1")
         .author("南浦月 <nanpuyue@gmail.com>")
         .arg(
             Arg::with_name("local")
-                .short("l")
+                .short('l')
                 .value_name("ADDR:PORT")
                 .help("local listen port")
                 .takes_value(true)
@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .arg(
             Arg::with_name("proxy")
-                .short("x")
+                .short('x')
                 .value_name("ADDR:PORT")
                 .help("socks5 proxy server")
                 .takes_value(true)
@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .arg(
             Arg::with_name("remote")
-                .short("r")
+                .short('r')
                 .value_name("ADDR:PORT")
                 .help("remote target port")
                 .takes_value(true)
