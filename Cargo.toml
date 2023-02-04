@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 clap = "3.2.16"
 tokio-socks = "0.5.1"
-tokio = { version = "1.20.1", features = ["io-util", "macros", "rt", "net"] }
+tokio = { version = "1.20.4", features = ["io-util", "macros", "rt", "net"] }
