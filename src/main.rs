@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use clap::{App, Arg};
 use tokio::io::{AsyncRead, AsyncWrite};
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, TcpStream};
 use tokio_socks::tcp::Socks5Stream;
 
 async fn link_stream<A: AsyncRead + AsyncWrite, B: AsyncRead + AsyncWrite>(
@@ -44,7 +44,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .value_name("ADDR:PORT")
                 .help("socks5 proxy server")
                 .takes_value(true)
-                .required(true),
+                .required(false),
         )
         .arg(
             Arg::with_name("remote")
@@ -57,7 +57,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .get_matches();
 
     let local = matches.value_of("local").unwrap();
-    let proxy = Arc::new(matches.value_of("proxy").unwrap().to_owned());
+    let proxy = matches.value_of("proxy").map(|x| Arc::new(x.to_owned()));
     let remote = Arc::new(matches.value_of("remote").unwrap().to_owned());
 
     let listener = TcpListener::bind(local).await?;
@@ -65,15 +65,25 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let (tcpstream, addr) = listener.accept().await?;
         let proxy = proxy.clone();
         let remote = remote.clone();
+
         tokio::spawn(async move {
-            let socks5stream = Socks5Stream::connect(proxy.as_str(), remote.as_str())
-                .await
-                .map_err(drop)?;
+            match proxy {
+                Some(x) => {
+                    let socks5stream = Socks5Stream::connect(x.as_str(), remote.as_str())
+                        .await
+                        .map_err(drop)?;
+                    println!("{addr} connected");
 
-            println!("{addr} connected");
-            link_stream(tcpstream, socks5stream).await.map_err(drop)?;
+                    link_stream(tcpstream, socks5stream).await.map_err(drop)?;
+                }
+                None => {
+                    let upstream = TcpStream::connect(remote.as_str()).await.map_err(drop)?;
+                    println!("{addr} connected");
+                    link_stream(tcpstream, upstream).await.map_err(drop)?;
+                }
+            }
+
             println!("{addr} disconnected");
-
             Ok::<_, ()>(())
         });
     }
